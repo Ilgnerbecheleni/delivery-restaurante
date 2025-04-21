@@ -65,7 +65,7 @@ export class AuthService {
     );
   
     // Link de confirmação
-    const confirmLink = `https://${process.env.URL}/auth/confirm?token=${confirmToken}`;
+    const confirmLink = `http://${process.env.URL}/auth/confirm?token=${confirmToken}`;
   
     // Enviar e-mail de confirmação usando o template
     await this.emailService.sendMail(
@@ -156,7 +156,7 @@ console.log(user)
 
     // Enviar novo email de confirmação
     const emailSubject = 'Reenvio de Confirmação de Cadastro';
-    const confirmLink = `https://${process.env.URL}/auth/confirm?token=${confirmToken}`;
+    const confirmLink = `http://${process.env.URL}/auth/confirm?token=${confirmToken}`;
     const emailText = `Clique no link para confirmar seu cadastro: ${confirmLink}`;
     await this.emailService.sendMail(
       user.email,
