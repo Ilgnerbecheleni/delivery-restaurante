@@ -101,30 +101,35 @@ model Marmitex {
 model TipoArroz {
   id      String     @id @default(uuid())
   nome    String
+  isActive Boolean @default(true)
   marmitex Marmitex[]
 }
 
 model TipoFeijao {
   id      String     @id @default(uuid())
   nome    String
+  isActive Boolean @default(true)
   marmitex Marmitex[]
 }
 
 model TipoCarne {
   id      String     @id @default(uuid())
   nome    String
+  isActive Boolean @default(true)
   marmitex Marmitex[]
 }
 
 model TipoSalada {
   id      String     @id @default(uuid())
   nome    String
+  isActive Boolean @default(true)
   marmitex Marmitex[]
 }
 
 model TipoAcompanhamento {
   id      String     @id @default(uuid())
   nome    String
+  isActive Boolean @default(true)
   marmitex Marmitex[]
 }
 
