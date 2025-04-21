@@ -54,25 +54,31 @@ export class AuthService {
     if (existingUser) {
       throw new BadRequestException('Usuário já cadastrado');
     }
-
+  
     // Criar o usuário
     const newUser = await this.usersService.create(user);
-
+  
     // Gerar token de confirmação
     const confirmToken = this.jwtService.sign(
       { userId: newUser.id },
       { secret: process.env.JWT_SECRET, expiresIn: '1d' }
     );
-
-    // Atualizar o usuário com o token de confirmação
-   
-
-    // Enviar e-mail de confirmação
-    const emailSubject = 'Confirme seu cadastro';
+  
+    // Link de confirmação
     const confirmLink = `https://${process.env.URL}/auth/confirm?token=${confirmToken}`;
-    const emailText = `Clique no link para confirmar seu cadastro: ${confirmLink}`;
-    await this.emailService.sendMail(newUser.email, emailSubject, emailText);
-
+  
+    // Enviar e-mail de confirmação usando o template
+    await this.emailService.sendMail(
+      newUser.email,                     // destinatário
+      'Confirme seu cadastro',           // assunto
+      'confirm-account.html',            // nome do template
+      {
+        name: newUser.nome,              // variável {{name}}
+        link: confirmLink,               // variável {{link}}
+        year: new Date().getFullYear().toString(), // variável {{year}}
+      }
+    );
+  
     return { message: 'Cadastro realizado com sucesso. Verifique seu e-mail para confirmar o cadastro.' };
   }
 
@@ -104,23 +110,31 @@ console.log(user)
     if (!user) {
       throw new BadRequestException('Usuário não encontrado');
     }
-
+  
     // Gerar senha temporária de 6 dígitos
     const tempPassword = Math.floor(100000 + Math.random() * 900000).toString();
-
+  
     // Hash da senha temporária
     const hashedPassword = await bcrypt.hash(tempPassword, 10);
-
+  
     // Atualizar senha do usuário
     await this.usersService.updatePassword(user.id, hashedPassword);
-
-    // Enviar email com a nova senha
-    const emailSubject = 'Reset de Senha';
-    const emailText = `Sua nova senha temporária é: ${tempPassword}`;
-    await this.emailService.sendMail(user.email, emailSubject, emailText);
-
+  
+    // Enviar email com a nova senha usando o template
+    await this.emailService.sendMail(
+      user.email,                   // destinatário
+      'Reset de Senha',             // assunto
+      'reset-password.html',        // nome do template
+      {
+        name: user.nome,            // variável {{name}}
+        password: tempPassword,     // variável {{password}}
+        year: new Date().getFullYear().toString(), // variável {{year}}
+      }
+    );
+  
     return { message: 'Senha temporária enviada por email' };
   }
+  
 
 
   async resendConfirmationEmail(email: string) {
@@ -142,9 +156,18 @@ console.log(user)
 
     // Enviar novo email de confirmação
     const emailSubject = 'Reenvio de Confirmação de Cadastro';
-    const confirmLink = `http://${process.env.URL}/auth/confirm?token=${confirmToken}`;
+    const confirmLink = `https://${process.env.URL}/auth/confirm?token=${confirmToken}`;
     const emailText = `Clique no link para confirmar seu cadastro: ${confirmLink}`;
-    await this.emailService.sendMail(user.email, emailSubject, emailText);
+    await this.emailService.sendMail(
+      user.email,
+      'Reenvio de Confirmação de Cadastro',
+      'resend-confirmation.html',
+      {
+        name: user.nome,
+        link: confirmLink,
+        year: new Date().getFullYear().toString(),
+      }
+    );
 
     return { message: 'Email de confirmação reenviado com sucesso. Verifique seu e-mail.' };
   }

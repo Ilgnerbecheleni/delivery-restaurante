@@ -7,5 +7,6 @@ import { PrismaModule } from 'src/prisma/prisma.module';
     imports: [PrismaModule],
   controllers: [TipoFeijaoController],
   providers: [TipoFeijaoService],
+  exports: [TipoFeijaoService],
 })
 export class TipoFeijaoModule {}

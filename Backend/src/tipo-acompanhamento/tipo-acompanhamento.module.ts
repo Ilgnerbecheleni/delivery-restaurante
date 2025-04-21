@@ -5,5 +5,6 @@ import { TipoAcompanhamentoController } from './tipo-acompanhamento.controller';
 @Module({
   controllers: [TipoAcompanhamentoController],
   providers: [TipoAcompanhamentoService],
+  exports: [TipoAcompanhamentoService],
 })
 export class TipoAcompanhamentoModule {}

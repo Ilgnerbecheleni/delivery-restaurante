@@ -7,5 +7,6 @@ import { PrismaModule } from 'src/prisma/prisma.module';
   imports: [PrismaModule],
   controllers: [TipoSaladaController],
   providers: [TipoSaladaService],
+  exports: [TipoSaladaService],
 })
 export class TipoSaladaModule {}

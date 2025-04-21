@@ -1,51 +1,51 @@
-/* eslint-disable prettier/prettier */
+// email.service.ts
 import { Injectable } from '@nestjs/common';
-import { Client, SendEmailV3_1, LibraryResponse } from 'node-mailjet';
+import * as nodemailer from 'nodemailer';
+import { existsSync, readFileSync } from 'fs';
+import { join } from 'path';
 
 @Injectable()
 export class EmailService {
-  private mailjet: Client;
+  private transporter: nodemailer.Transporter;
 
   constructor() {
-    this.mailjet = new Client({
-      apiKey: process.env.MJ_APIKEY_PUBLIC,
-      apiSecret: process.env.MJ_APIKEY_PRIVATE,
+    this.transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.GMAIL_USER,
+        pass: process.env.GMAIL_PASS,
+      },
     });
   }
 
-  async sendMail(to: string, subject: string, text: string, html?: string) {
-    const data: SendEmailV3_1.Body = {
-      Messages: [
-        {
-          From: {
-            Email: 'ilgner_becheleni@hotmail.com', // Substitua pelo seu email
-            Name: 'Users', // Substitua pelo seu nome ou nome da sua aplicação
-          },
-          To: [
-            {
-              Email: to,
-              Name: 'Usuario', // Opcional: Substitua pelo nome do destinatário
-            },
-          ],
-          Subject: subject,
-          TextPart: text,
-          HTMLPart: html || '', // Pode usar HTML opcionalmente
-        },
-      ],
+  private renderTemplate(templateName: string, variables: Record<string, string>) {
+    // Procura primeiro em dist, depois em src
+    let templatePath = join(__dirname, 'templates', templateName);
+    if (!existsSync(templatePath)) {
+      templatePath = join(process.cwd(), 'src', 'email', 'templates', templateName);
+    }
+    let html = readFileSync(templatePath, 'utf8');
+    Object.keys(variables).forEach(key => {
+      html = html.replace(new RegExp(`{{${key}}}`, 'g'), variables[key]);
+    });
+    return html;
+  }
+
+  async sendMail(to: string, subject: string, template: string, variables: Record<string, string>) {
+    const html = this.renderTemplate(template, variables);
+
+    const mailOptions = {
+      from: `"Users" <${process.env.GMAIL_USER}>`,
+      to: to,
+      subject: subject,
+      html: html,
     };
 
     try {
-      const result: LibraryResponse<SendEmailV3_1.Response> = await this.mailjet
-        .post('send', { version: 'v3.1' })
-        .request(data);
-
-      console.log('Email sent:', result.body.Messages[0].Status);
+      const info = await this.transporter.sendMail(mailOptions);
+      console.log('Email enviado:', info.messageId);
     } catch (error) {
-      console.error('Error sending email:', error);
+      console.error('Erro ao enviar e-mail:', error);
     }
   }
 }
-
-
-
-
