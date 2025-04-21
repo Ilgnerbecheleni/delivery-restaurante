@@ -1,0 +1,138 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+enum MarmitexSize {
+  PEQUENO
+  MEDIO
+  GRANDE
+}
+
+enum ProdutoTipo {
+  BEBIDA
+  SOBREMESA
+  OUTRO
+}
+
+
+model User {
+  id           String  @id @default(uuid())
+  nome         String 
+  email        String  @unique
+  password     String
+  verificado   Boolean @default(false)
+  resetPass    Boolean @default(false)
+  role         Role    @default(USER) // 
+    pedidos      Pedido[]
+      enderecos    Endereco[]
+}
+
+
+model Endereco {
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  logradouro String
+  numero     String
+  bairro     String
+  cidade     String
+  uf         String
+  cep        String
+  pedidos    Pedido[]
+}
+
+model Pedido {
+  id            String        @id @default(uuid())
+  createdAt     DateTime      @default(now())
+  user          User          @relation(fields: [userId], references: [id])
+  userId        String
+  itens         PedidoItem[]
+  total         Float
+  status        String        // Ex: "PENDENTE", "FINALIZADO"
+  observacao      String?
+  endereco        Endereco      @relation(fields: [enderecoId], references: [id])
+  enderecoId      String
+}
+
+model PedidoItem {
+  id            String        @id @default(uuid())
+  pedido        Pedido        @relation(fields: [pedidoId], references: [id])
+  pedidoId      String
+  marmitex      Marmitex?     @relation(fields: [marmitexId], references: [id])
+  marmitexId    String?
+  produto       Produto?      @relation(fields: [produtoId], references: [id])
+  produtoId     String?
+  quantidade    Int           @default(1)
+  precoUnitario Float
+}
+
+model Marmitex {
+  id            String         @id @default(uuid())
+  tamanho       MarmitexSize
+  arroz         TipoArroz      @relation(fields: [arrozId], references: [id])
+  arrozId       String
+  feijao        TipoFeijao     @relation(fields: [feijaoId], references: [id])
+  feijaoId      String
+  carne         TipoCarne      @relation(fields: [carneId], references: [id])
+  carneId       String
+  salada        TipoSalada     @relation(fields: [saladaId], references: [id])
+  saladaId      String
+  acompanhamento TipoAcompanhamento @relation(fields: [acompanhamentoId], references: [id])
+  acompanhamentoId String
+  preco         Float
+  pedidoItems   PedidoItem[]
+}
+
+model TipoArroz {
+  id      String     @id @default(uuid())
+  nome    String
+  marmitex Marmitex[]
+}
+
+model TipoFeijao {
+  id      String     @id @default(uuid())
+  nome    String
+  marmitex Marmitex[]
+}
+
+model TipoCarne {
+  id      String     @id @default(uuid())
+  nome    String
+  marmitex Marmitex[]
+}
+
+model TipoSalada {
+  id      String     @id @default(uuid())
+  nome    String
+  marmitex Marmitex[]
+}
+
+model TipoAcompanhamento {
+  id      String     @id @default(uuid())
+  nome    String
+  marmitex Marmitex[]
+}
+
+model Produto {
+  id      String     @id @default(uuid())
+  nome    String
+  preco   Float
+  tipo    ProdutoTipo
+  pedidoItems PedidoItem[]
+}
+
